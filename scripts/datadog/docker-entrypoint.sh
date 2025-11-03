@@ -10,12 +10,12 @@ env | while IFS= read -r line; do
         value=${line#*=}
         if [ -n "$value" ]; then
                 # Uncomment the line in the template file, if the config-key name is in 'env' variable list
-                sed -i --regex "s/# (.*\{$name\}.*)/\1/" /etc/datadog-agent/conf.d/aerospike_enterprise.d/aero_check_conf.yaml.template
+                sed -i --regex "s/# (.*\{$name\}.*)/\1/" /etc/datadog-agent/conf.d/aerospike_enterprise.d/conf.yaml.template
         fi
 done
 
 # Substitute the environment variables in the template file and save the result to the conf.yaml file
-envsubst < /etc/datadog-agent/conf.d/aerospike_enterprise.d/aero_check_conf.yaml.template > /etc/datadog-agent/conf.d/aerospike_enterprise.d/conf.yaml
+envsubst < /etc/datadog-agent/conf.d/aerospike_enterprise.d/conf.yaml.template > /etc/datadog-agent/conf.d/aerospike_enterprise.d/conf.yaml
 
 set -- /opt/datadog-agent/bin/agent/agent run "$@"
 
