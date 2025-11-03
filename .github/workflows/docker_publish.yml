@@ -1,0 +1,47 @@
+name: Docker Aerospike Datadog Agent check 
+
+on:
+  push:
+    tags:
+      - v*
+  workflow_dispatch:
+    inputs:
+      docker_tag: 
+         description: Docker Tag
+         required: false
+jobs:
+  build-container:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+    - name: Set up QEMU
+      uses: docker/setup-qemu-action@v2
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v2
+    - name: Docker login
+      uses: docker/login-action@v2
+      with:
+        username: ${{ secrets.DOCKERHUB_USERNAME }}
+        password: ${{ secrets.DOCKERHUB_TOKEN }}
+    - name: Set env
+      run: |
+        echo "DOCKER_TAG=$(echo $GITHUB_REF_NAME | cut -c 2-)" >> $GITHUB_ENV
+
+    - name: Build and push
+      env:
+        DOCKER_MULTI_ARCH_PLATFORMS: linux/amd64,linux/arm64
+      run: |
+        echo "Creating Docker Images with given Docker Tag  with GITHUB_REF_NAME - ".${{ env.DOCKER_TAG }}
+        echo
+        
+        if [  "${{ github.event.inputs.docker_tag }}" == "" ]; then
+            echo "Creating Docker Images with given Docker Tag  with GITHUB_REF_NAME - ".${{ env.DOCKER_TAG }}
+            VERSION=${{ env.DOCKER_TAG }}
+        else
+            echo "Creating Docker Images with Input Docker Tag value ".${{ github.event.inputs.docker_tag }}
+            VERSION=${{ github.event.inputs.docker_tag }}
+        fi     
+        
+        echo "Docker image version - $VERSION"
+        docker buildx build --build-arg VERSION=$VERSION --platform $DOCKER_MULTI_ARCH_PLATFORMS --push . -f build/datadog.Dockerfile -t aerospike/datadog-aerospike-integration:latest -t aerospike/datadog-aerospike-integration:$VERSION
